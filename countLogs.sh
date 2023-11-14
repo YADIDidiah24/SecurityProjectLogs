@@ -1,6 +1,6 @@
 #!/bin/bash
 
-log_file_path="/path/to/your/logfile.log"  # Replace with the actual path to your log file
+log_file_path="/var/log/auth.log"  # Replace with the actual path to your log file
 
 # Calculate the start time for the last hour
 start_time=$(date -d "1 hour ago" "+%Y-%m-%dT%H:%M:%S")
