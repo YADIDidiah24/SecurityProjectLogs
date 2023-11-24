@@ -111,8 +111,7 @@ so, all the problems which were stated are solved in this report. Additionally, 
 
 In conclusion, this penetration testing project was successful in using for detection and prevention of security breaches. And The findings and recommendations positively impact  the efforts to strengthen IT security in evolving cyber threats.
 All the codes used are in the given link.
-HTTPS://GITHUB.COM/YADIDIDIAH24/SECURITYPROJECTLOGS/TREE/MAIN
-
+https://github.com/YADIDidiah24/SecurityProjectLogs/tree/main
 
 References:
 •	SANS Institute. (2022). SANS DFIR Handbook: Security Forensics, Investigation, and Response (4th ed.). John Wiley & Sons.
