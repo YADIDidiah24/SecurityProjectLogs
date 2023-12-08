@@ -1,8 +1,10 @@
-from flask import Flask, request
+from flask import Flask, request, g
 import logging
 from datetime import datetime
 from pytz import timezone
 from functools import wraps
+import hashlib
+import sqlite3
 
 app = Flask(__name__)
 
@@ -33,6 +35,35 @@ error_log.setLevel(logging.ERROR)
 error_log_handler = logging.FileHandler('/var/log/auth.log')  # Use the same handler as auth_log
 error_log_handler.setFormatter(auth_log_formatter)  # Use the same formatter as auth_log
 error_log.addHandler(error_log_handler)
+
+def hash_password(password):
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    return hashed_password
+DATABASE = 'user_credentials.db'
+
+# Function to get the database connection
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+    return db
+
+# Function to execute a query and return results
+def execute_query(query, parameters=(), fetchone=False):
+    with app.app_context():
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute(query, parameters)
+
+        if fetchone:
+            result = cursor.fetchone()
+        else:
+            result = cursor.fetchall()
+
+        cursor.close()
+        db.commit()
+
+    return result
 
 username = ''
 password = ''
@@ -284,18 +315,20 @@ def login():
     # Get the current time
     current_time = datetime.now(timezone('Asia/Dubai')).strftime('%Y-%m-%dT%H:%M:%S.%f%z')
 
-    # Check the credentials
-    valid_usernames = ['user123', "admin"]
-    valid_password = 'password123'
+    # Hash the provided password
+    hashed_password = hash_password(password)
 
-    if username in valid_usernames and password == valid_password:
+    # Check the credentials against the database
+    query = "SELECT * FROM users WHERE username=?"
+    user = execute_query(query, (username,), fetchone=True)
+
+    if user and user[2] == hashed_password:  # Assuming hashed password is stored in the third column
         # Authentication successful
         auth_log_message = f'{current_time} kali SuccessfulLogin: Successful login for {username} from IP {request.remote_addr}'
         auth_log.info(auth_log_message)
         styled_html = common_styling.format(title='Login Successful', background_color='#42f590', message=f'Hello {username}! Login successful! YOU ARE LOGGED IN !!')
 
         return styled_html, 200
-
     else:
         session_log_message = f'{current_time} kali FailedLogin: Failed login attempt for user {username} from IP {request.remote_addr}'
         session_log.warning(session_log_message)
