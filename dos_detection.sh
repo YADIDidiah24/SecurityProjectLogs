@@ -1,8 +1,6 @@
 #!/bin/bash
-
-log_file_path="/var/log/auth.log"  # Replace with the actual path to your log file
-dos_log="/var/log/dos.log"  # Specify the path for the DoS attack log
-threshold_requests=10000
+log_file_path="/var/log/auth.log"
+threshold_requests=10   
 threshold_duration=60  # in seconds
 
 block_traffic() {
@@ -22,17 +20,16 @@ requests=$(awk -v start_time="$start_time" -v current_time="$current_time" \
 
 if [ "$requests" -gt "$threshold_requests" ]; then
   echo "DoS attack detected! Blocking incoming traffic..."
+
+  # Logging the DOS attempt
+  logger -t DosAttempt -p auth.notice "DoS attack detected on port 9080"
+
   block_traffic
-  
-  # Extract username and IP address from the log file (adjust accordingly based on your log format)
-  username=$(awk '$NF == "Failed" { print $(NF-1) }' "$log_file_path")
-  ip_address=$(awk '$NF == "Failed" { print $(NF-3) }' "$log_file_path")
-  
-  # Log the DoS attack
-  logger -t "DoS attack" -p auth.notice "DoS attack attempt by $username from IP $ip_address"
-  
-  sleep 2  # Adjust the sleep interval as needed
+  sleep 2
+else
+  echo "Dos Attack Not Detected"
+  logger -t DosAttempt -p auth.notice "No DoS attack detected on port 9080"
 fi
 
-echo "Dos Attack Stopped"
+echo "Dos Attack Check Complete"
 exit 0
