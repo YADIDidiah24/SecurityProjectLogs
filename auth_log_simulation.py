@@ -34,10 +34,41 @@ error_log_handler = logging.FileHandler('/var/log/auth.log')  # Use the same han
 error_log_handler.setFormatter(auth_log_formatter)  # Use the same formatter as auth_log
 error_log.addHandler(error_log_handler)
 
-html_style = 'text-align: center; background-color: red; font-size: 40px; font-weight: bold;'
-
 username = ''
 password = ''
+
+common_styling = '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <title>{title}</title>
+        <!-- Stylesheet -->
+        <style media="screen">
+            body {{
+                background-color: {background_color};
+                font-family: 'Poppins', sans-serif;
+                text-align: center;
+            }}
+            .container {{
+                margin-top: 50px;
+                padding: 20px;
+                background-color: #fff;
+                border-radius: 10px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            }}
+            h1 {{
+                color: #1e1a36;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>{message}</h1>
+        </div>
+    </body>
+    </html>
+'''
+
 def log_request_info(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -47,6 +78,7 @@ def log_request_info(func):
         return func(*args, **kwargs)
 
     return wrapper
+
 @app.route('/')
 @log_request_info
 def index():
@@ -55,62 +87,195 @@ def index():
     session_log_message = f'{current_time} Session: User accessed the website from IP {request.remote_addr}'
     session_log.info(session_log_message)
 
-    login_form = '''
-    <style>
-        body {
-            height: 100vh;
-            background: blue; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
-        }
+    html = '''
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <title>Login</title>
+            <!--Stylesheet-->
+        <style media="screen">
 
-        .box {
-            width: 300px;
-            padding: 20px;
-            background: #ffffff;
-            border-radius: 10px;
+            *:after{
+                padding: 0;
+                margin: 0;
+                box-sizing: border-box;
+            }
+            body{
+                background-color: #1e1a36;
+            }
+            .background{
+                width: 430px;
+                height: 520px;
+                position: absolute;
+                transform: translate(-50%,-50%);
+                left: 50%;
+                top: 50%;
+            }
+            .background .shape{
+                height: 200px;
+                width: 200px;
+                position: absolute;
+                border-radius: 50%;
+            }
+            .shape:first-child{
+                background: linear-gradient(
+                    #57dd09,
+                    #23a2f6
+                );
+                left: -110px;
+                top: -110px;
+            }
+            .shape:last-child{
+                background: linear-gradient(
+                    to right,
+                    #fc2c03,
+                    #f09819
+                );
+                right: -110px;
+                bottom: -110px;
+            }
+            form{
+                height: 450px;
+                width: 380px;
+                background-color: rgba(7, 0, 0, 0.13);
+                position: absolute;
+                transform: translate(-50%,-50%);
+                top: 50%;
+                left: 50%;
+                border-radius: 10px;
+                backdrop-filter: blur(10px);
+                border: 2px solid rgba(241, 235, 235, 0.1);
+                box-shadow: 0 0 40px rgba(145, 143, 160, 0.6);
+                padding: 50px 35px;
+            }
+            form *{
+                font-family: 'Poppins',sans-serif;
+                color: #cac8c8;
+                letter-spacing: 0.5px;
+                outline: none;
+                border: none;
+            }
+            form h3{
+                font-size: 32px;
+                font-weight: 500;
+                line-height: 42px;
+                text-align: center;
+            }
+
+            label{
+                display: block;
+                margin-top: 30px;
+                font-size: 16px;
+                font-weight: 500;
+            }
+            input{
+                display: block;
+                height: 50px;
+                width: 100%;
+                background-color: rgba(247, 239, 239, 0.411);
+                border-radius: 3px;
+                padding: 0px 0px;
+                margin-top: 8px;
+                font-size: 14px;
+                font-weight: 300;
+                text-indent: 10px;
+            }
+            ::placeholder{
+                color: #e0d9d9;
+            }
+
+            button{
+                margin-top: 30px;
+                width: 100%;
+                background-color: #d6cfcf;
+                color: #080710;
+                padding: 15px 0px;
+                font-size: 18px;
+                font-weight: 600;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+            #change{
+                display: inline-block;
+                margin-top: 20px;
+                width: 50%;
+                background-color: #949292;
+                color: #232324;
+                padding: 8px 0;
+                font-size: 14px;
+                font-weight: 600;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            .social div{
+            background: red;
+            width: 150px;
+            border-radius: 3px;
+            padding: 5px 10px 10px 5px;
+            background-color: rgba(255,255,255,0.27);
+            color: #eaf0fb;
             text-align: center;
-        }
+            }
+            .social div:hover{
+            background-color: rgba(255,255,255,0.47);
+            }
+            .social .fb{
+            margin-left: 25px;
+            }
+            .social i{
+            margin-right: 4px;
+            }
+            .button-container {
+                display: flex;
+                gap: 10px;
+            }
+            .button-container button {
+                backdrop-filter: none;
+            }
 
-        #input[type="text"],
-        #input[type="password"] {
-            padding: 10px;
-            font-size: 16px;
-            border: 2px solid #ccc;
-            border-radius: 5px;
-            width: 100%;
-        }
+        </style>
+        </head>
+        <body>
+            <div class="background">
+                <div class="shape"></div>
+                <div class="shape"></div>
+            </div>
+            <form method="post" action="/process">
+                <h3>Authenticate Here</h3>
 
-        #hhh {
-            border: none;
-            font-size: 16px;
-            padding: 10px 20px;
-            background-color: #febf00;
-            color: #000;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-    </style>
-    <div class="box">
-        <form method="post" action="/login">
-            <h1 id="time">Login</h1>
-            <input id="input" type="text" name="username" placeholder="Username" required><br><br>
-            <input id="input" type="password" name="password" placeholder="Password" required><br><br>
-            <button id="hhh" type="submit">Login</button>
-        </form>
-        <form method="get" action="/get_phrase">
-            <button id="hhh" type="submit">Get Today's Phrase</button>
-        </form>
-        <div class="card">
-            <div class="title">NOTE: For Simulation Only!</div>
-        </div>
-    </div>
+                <label for="username">Username</label>
+                <input type="text" placeholder="Enter Username" id="username" name="username">
+
+                <label for="password">Password</label>
+                <input type="password" placeholder="Enter Password" id="password" name="password">
+
+                <button type="submit" name="action" value="login">Log In</button>
+                <div class="button-container">
+                    <button type="submit" name="action" value="changePassword">Change Password</button>
+                    <button type="submit" name="action" value="onlyAuthorised">Only Authorised</button>
+                </div>
+                <p>Note: For Simulation Only</p>
+
+            </form>
+        </body>
+        </html>
     '''
-    return f'<html><body>{login_form}</body></html>'
+    return html
 
-@app.route('/login', methods=['POST'])
+@app.route('/process', methods=['POST'])
+def process_form():
+    action = request.form.get('action')
+
+    if action == 'login':
+        return login()
+    elif action == 'changePassword':
+        return change_password()
+    elif action == 'onlyAuthorised':
+        return only_authorized()
+    else:
+        return "Invalid action"
+
 def login():
     global username, password
     username = request.form['username']
@@ -119,29 +284,35 @@ def login():
     # Get the current time
     current_time = datetime.now(timezone('Asia/Dubai')).strftime('%Y-%m-%dT%H:%M:%S.%f%z')
 
-    # Check the credentials (in this example, we use a hardcoded valid username and password)
-    valid_username = ['user123',"admin"]
+    # Check the credentials
+    valid_usernames = ['user123', "admin"]
     valid_password = 'password123'
 
-    if username in valid_username and password == valid_password:
+    if username in valid_usernames and password == valid_password:
         # Authentication successful
         auth_log_message = f'{current_time} kali SuccessfulLogin: Successful login for {username} from IP {request.remote_addr}'
         auth_log.info(auth_log_message)
-        return f'<html><body style="{html_style}">Login successful! YOU ARE LOGGED IN !!</body></html>',200
+        styled_html = common_styling.format(title='Login Successful', background_color='#42f590', message=f'Hello {username}! Login successful! YOU ARE LOGGED IN !!')
+
+        return styled_html, 200
 
     else:
         session_log_message = f'{current_time} kali FailedLogin: Failed login attempt for user {username} from IP {request.remote_addr}'
         session_log.warning(session_log_message)
+        styled_html = common_styling.format(title='Login Failed', background_color='#fc1303', message=f'{username} your Login has failed. INVALID CREDENTIALS')
 
-        return f'<html><body style="{html_style}">Login failed. INVALID CREDENTIALS</body></html>', 401
+        return styled_html, 401
 
-@app.route('/get_phrase', methods=['GET'])
-def get_phrase():
-    global username
-    global password
+def change_password():
+    # Implement your change password logic here
+    return "Change Password logic goes here"
+
+def only_authorized():
+    global username, password
+
     # Get the current time
     current_time = datetime.now(timezone('Asia/Dubai')).strftime('%Y-%m-%dT%H:%M:%S.%f%z')
-    session_log_message = f'{current_time} Session: User accessed get_phrase from IP {request.remote_addr}'
+    session_log_message = f'{current_time} Session: User accessed only_authorized from IP {request.remote_addr}'
     session_log.info(session_log_message)
 
     valid_username = "admin"
@@ -149,18 +320,18 @@ def get_phrase():
 
     if username == valid_username and password == valid_password:
         # Authorized access
-        auth_log_message = f'{current_time} kali AuthorizedAccess: Authorized access for user1 from IP {request.remote_addr}'
+        auth_log_message = f'{current_time} kali AuthorizedAccess: Authorized access for User {username} from from IP {request.remote_addr}'
         auth_log.info(auth_log_message)
+        styled_html = common_styling.format(title='Authorized Access', background_color='#0307fc', message=f'{username} you are Authorized to Access this information.(GOOD LUCK)')
 
-        return f'<html><body style="{html_style}">Today\'s Phrase: You are authorized to access this information!</body></html>', 200
+        return styled_html, 200
 
     else:
         # Unauthorized access
-        auth_log_message = f'{current_time} kali UnauthorizedAccess: Unauthorized access attempt from IP {request.remote_addr}'
+        auth_log_message = f'{current_time} kali UnauthorizedAccess: Unauthorized access attempt from User {username} from IP {request.remote_addr}'
         auth_log.warning(auth_log_message)
+        styled_html = common_styling.format(title='Unauthorized Access', background_color='#fcdf03', message=f'{username} you are not Authorized to Access this information. (GO BACK)')
 
-        return f'<html><body style="{html_style}">Unauthorized access. You are not authorized to access this information.</body></html>', 401
-
+        return styled_html, 200
 if __name__ == '__main__':
     app.run(port=9080)
-                                                                                                                                                                                                                                           
