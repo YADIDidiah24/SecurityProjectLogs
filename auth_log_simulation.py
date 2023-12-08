@@ -135,7 +135,7 @@ def index():
                 bottom: -110px;
             }
             form{
-                height: 450px;
+                height: 470px;
                 width: 380px;
                 background-color: rgba(7, 0, 0, 0.13);
                 position: absolute;
