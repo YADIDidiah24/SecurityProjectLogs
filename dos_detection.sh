@@ -1,6 +1,7 @@
 #!/bin/bash
-log_file_path="/var/log/auth.log"
-threshold_requests=10   
+
+log_file_path="/var/log/auth.log"  # Replace with the actual path to your log file
+threshold_requests=10000
 threshold_duration=60  # in seconds
 
 block_traffic() {
@@ -20,16 +21,18 @@ requests=$(awk -v start_time="$start_time" -v current_time="$current_time" \
 
 if [ "$requests" -gt "$threshold_requests" ]; then
   echo "DoS attack detected! Blocking incoming traffic..."
-
   # Logging the DOS attempt
   logger -t DosAttempt -p auth.notice "DoS attack detected on port 9080"
 
   block_traffic
-  sleep 2
+  logger -t BlockTraffic -p auth.notice "Firewall has blocked all traffic"
+  sleep 2  # Adjust the sleep interval as needed
 else
   echo "Dos Attack Not Detected"
-  logger -t DosAttempt -p auth.notice "No DoS attack detected on port 9080"
+  # Logging that DOS was not detected
+  logger -t DosTest -p auth.notice "No DoS attack was detected by the test"
 fi
 
+echo ""
 echo "Dos Attack Check Complete"
 exit 0
