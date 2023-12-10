@@ -5,6 +5,8 @@ from pytz import timezone
 from functools import wraps
 import hashlib
 import sqlite3
+import sys
+import subprocess
 
 app = Flask(__name__)
 
@@ -47,7 +49,6 @@ def get_db():
     if db is None:
         db = g._database = sqlite3.connect(DATABASE)
     return db
-
 # Function to execute a query and return results
 def execute_query(query, parameters=(), fetchone=False):
     with app.app_context():
@@ -64,9 +65,6 @@ def execute_query(query, parameters=(), fetchone=False):
         db.commit()
 
     return result
-
-username = ''
-password = ''
 
 common_styling = '''
     <!DOCTYPE html>
@@ -297,21 +295,20 @@ def index():
 @app.route('/process', methods=['POST'])
 def process_form():
     action = request.form.get('action')
+    if 'username' in request.form and 'password' in request.form :
+        username = request.form['username'].split(" ")[0]
+        password = request.form['password'].split(" ")[0]
 
     if action == 'login':
-        return login()
+        return login(username,password)
     elif action == 'changePassword':
         return change_password()
     elif action == 'onlyAuthorised':
-        return only_authorized()
+        return only_authorized(username,password)
     else:
         return "Invalid action"
 
-def login():
-    global username, password
-    username = request.form['username']
-    password = request.form['password']
-
+def login(username,password):
     # Get the current time
     current_time = datetime.now(timezone('Asia/Dubai')).strftime('%Y-%m-%dT%H:%M:%S.%f%z')
 
@@ -336,29 +333,23 @@ def login():
 
         return styled_html, 401
 
-def change_password():
-    # Implement your change password logic here
-    return "Change Password logic goes here"
-
-def only_authorized():
-    global username, password
-
+def only_authorized(username,password):
     # Get the current time
     current_time = datetime.now(timezone('Asia/Dubai')).strftime('%Y-%m-%dT%H:%M:%S.%f%z')
     session_log_message = f'{current_time} Session: User accessed only_authorized from IP {request.remote_addr}'
     session_log.info(session_log_message)
 
-    valid_username = "admin"
-    valid_password = 'password123'
+    hashed_password = hash_password(password)
+    query = "SELECT * FROM users WHERE username=?"
+    user = execute_query(query, (username,), fetchone=True)
 
-    if username == valid_username and password == valid_password:
-        # Authorized access
-        auth_log_message = f'{current_time} kali AuthorizedAccess: Authorized access for User {username} from from IP {request.remote_addr}'
-        auth_log.info(auth_log_message)
-        styled_html = common_styling.format(title='Authorized Access', background_color='#0307fc', message=f'{username} you are Authorized to Access this information.(GOOD LUCK)')
-
-        return styled_html, 200
-
+    if user:
+        if username== "admin" and user[2] == hashed_password:  # Assuming hashed password is stored in the third column
+        # Authentication successful
+            auth_log_message = f'{current_time} kali SuccessfulLogin: Successful login for {username} from IP {request.remote_addr}'
+            auth_log.info(auth_log_message)
+            styled_html = common_styling.format(title='Authorized Access', background_color='#0307fc', message=f'{username} you are Authorized to Access this information.(GOOD LUCK)')
+            return styled_html, 200
     else:
         # Unauthorized access
         auth_log_message = f'{current_time} kali UnauthorizedAccess: Unauthorized access attempt from User {username} from IP {request.remote_addr}'
@@ -366,5 +357,11 @@ def only_authorized():
         styled_html = common_styling.format(title='Unauthorized Access', background_color='#fcdf03', message=f'{username} you are not Authorized to Access this information. (GO BACK)')
 
         return styled_html, 200
+
+def change_password():
+    # Implement your change password logic here
+    return "Change Password logic goes here"
+
+
 if __name__ == '__main__':
     app.run(port=9080)
