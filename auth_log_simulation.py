@@ -281,7 +281,6 @@ def index():
 
                 <button type="submit" name="action" value="login">Log In</button>
                 <div class="button-container">
-                    <button type="submit" name="action" value="changePassword">Change Password</button>
                     <button type="submit" name="action" value="onlyAuthorised">Only Authorised</button>
                 </div>
                 <p>Note: For Simulation Only</p>
@@ -301,8 +300,6 @@ def process_form():
 
     if action == 'login':
         return login(username,password)
-    elif action == 'changePassword':
-        return change_password()
     elif action == 'onlyAuthorised':
         return only_authorized(username,password)
     else:
@@ -348,7 +345,7 @@ def only_authorized(username,password):
         # Authentication successful
             auth_log_message = f'{current_time} kali SuccessfulLogin: Successful login for {username} from IP {request.remote_addr}'
             auth_log.info(auth_log_message)
-            styled_html = common_styling.format(title='Authorized Access', background_color='#0307fc', message=f'{username} you are Authorized to Access this information.(GOOD LUCK)')
+            styled_html = common_styling.format(title='Authorized Access', background_color='#0307fc', message=f'{username} \nAuthorization Succesful,\n\n\tYou are granted special access to this classified information. Proceed with caution and good luck on your mission! 🌐🕵️‍♂️🚀\n\n(GOOD LUCK)\n')
             return styled_html, 200
     else:
         # Unauthorized access
@@ -358,9 +355,7 @@ def only_authorized(username,password):
 
         return styled_html, 200
 
-def change_password():
-    # Implement your change password logic here
-    return "Change Password logic goes here"
+
 
 
 if __name__ == '__main__':
