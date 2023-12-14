@@ -1,22 +1,30 @@
 #!/bin/bash
 
-log_file_path="/var/log/auth.log"  # Replace with the actual path to your log file
+log_file="/var/log/auth.log"
 
-# Calculate the start time for the last hour
-start_time=$(date -d "1 hour ago" "+%Y-%m-%dT%H:%M:%S")
+limit=$(date -d '2 hours ago' '+%s')
 
-# Count the occurrences of different log types from the last hour
-num_incoming_requests=$(awk -v start_time="$start_time" '/IncomingRequest/ && $1 >= start_time { count++ } END { print count+0 }' "$log_file_path")
-num_failed_login=$(awk -v start_time="$start_time" '/FailedLogin/ && $1 >= start_time { count++ } END { print count+0 }' "$log_file_path")
-num_successful_login=$(awk -v start_time="$start_time" '/SuccessfulLogin/ && $1 >= start_time { count++ } END { print count+0 }' "$log_file_path")
-num_unauthorized_access=$(awk -v start_time="$start_time" '/UnauthorizedAccess/ && $1 >= start_time { count++ } END { print count+0 }' "$log_file_path")
-num_authorized_access=$(awk -v start_time="$start_time" '/AuthorizedAccess/ && $1 >= start_time { count++ } END { print count+0 }' "$log_file_path")
-num_suspicious_download=$(awk -v start_time="$start_time" '/SuspiciousDownload/ && $1 >= start_time { count++ } END { print count+0 }' "$log_file_path")
+function print_login_details {
+    type=$1
+    count=$(strings "$log_file" | grep -w "$type" | awk -v limit="$limit" '{timestamp=strftime("%s", substr($0, 1, 25)); if (timestamp >= limit) count++} END {if (count == "") count = 0; print count}')
 
-# Print the counts
-echo "Number of IncomingRequest: $num_incoming_requests"
-echo "Number of FailedLogin: $num_failed_login"
-echo "Number of SuccessfulLogin: $num_successful_login"
-echo "Number of UnauthorizedAccess: $num_unauthorized_access"
-echo "Number of AuthorizedAccess: $num_authorized_access"
-echo "Number of SuspiciousDownload: $num_suspicious_download"
+    echo "Total number of $type logins in the last 2 hours: $count"
+    echo ""
+    
+    if [ "$count" -gt 0 ]; then
+        echo "Details for $type logins are given below:"
+        echo ""
+        strings "$log_file" | grep -w "$type" | awk -v limit="$limit" '{timestamp=strftime("%s", substr($0, 1, 25)); if (timestamp >= limit) {for (i=10; i<=13; i++) printf $i" "; print ""}}' | sort -u
+    else
+        echo "No $type logins found in the last 2 hours."
+    fi
+    
+    echo ""
+}
+
+# Print details for different types of logins
+print_login_details "IncomingRequest"
+print_login_details "SuccessfulLogin"
+print_login_details "FailedLogin"
+print_login_details "AuthorisedAccess"
+print_login_details "UnauthorizedAccess"
