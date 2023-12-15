@@ -343,9 +343,22 @@ def only_authorized(username,password):
     if user:
         if username== "admin" and user[2] == hashed_password:  # Assuming hashed password is stored in the third column
         # Authentication successful
-            auth_log_message = f'{current_time} kali SuccessfulLogin: Successful login for {username} from IP {request.remote_addr}'
+            auth_log_message = f'{current_time} kali AuthorisedAccess: Authorised Access by {username} from IP {request.remote_addr}'
             auth_log.info(auth_log_message)
-            styled_html = common_styling.format(title='Authorized Access', background_color='#0307fc', message=f'{username} \nAuthorization Succesful,\n\n\tYou are granted special access to this classified information. Proceed with caution and good luck on your mission! 🌐🕵️‍♂️🚀\n\n(GOOD LUCK)\n')
+            styled_html = common_styling.format(
+    title='Authorized Access',
+    background_color='#0307fc',
+    message=f'''
+{username},<br><br>
+Authorization Successful,<br><br>
+You have been granted access to classified files.<br><br>
+🔒 SECRET KEY = "CosmicNebula" 🔒<br><br>
+Proceed with caution!<br><br>
+🌐⚓🕵🚀<br><br>
+<br><br>
+(GOOD LUCK)
+'''
+)
             return styled_html, 200
     else:
         # Unauthorized access
@@ -359,4 +372,4 @@ def only_authorized(username,password):
 
 
 if __name__ == '__main__':
-    app.run(port=9080)
+        app.run(host='0.0.0.0', port=9080)
