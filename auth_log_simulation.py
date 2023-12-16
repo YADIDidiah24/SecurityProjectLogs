@@ -97,7 +97,7 @@ common_styling = '''
     </body>
     </html>
 '''
-
+#wrapper function
 def log_request_info(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
