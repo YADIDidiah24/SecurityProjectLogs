@@ -1,0 +1,12 @@
+-- schema/create_tables.sql
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT
+);
+
+-- user123 ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f
+-- This is a sample query to retrieve a user by username
+-- Replace 'username' with the actual username you want to query
+-- Example: SELECT * FROM users WHERE username='john_doe';
+--SELECT * FROM users WHERE username='username';
